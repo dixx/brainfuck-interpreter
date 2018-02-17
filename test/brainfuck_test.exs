@@ -1,6 +1,6 @@
 defmodule BrainfuckTest do
   use ExUnit.Case
-  doctest Brainfuck # <-- skipped for now
+  doctest Brainfuck
 
   test "returns nothing for an empty program" do
     assert Brainfuck.run("") == {0, [0], ""}
