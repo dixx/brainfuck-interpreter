@@ -11,50 +11,33 @@ defmodule Brainfuck do
   """
   def run(program), do: run(program, 0, [0], "")
 
-  # no more Brainfuck found, output result and exit
-  defp run("", address, mem, output), do: {address, mem, output}
-
-  # go forth in memory
-  defp run(">" <> rest, address, mem, output) when length(mem) == address + 1 do
-    # add a cell to the end
-    run(rest, address + 1, mem ++ [0], output)
-  end
-  defp run(">" <> rest, address, mem, output), do: run(rest, address + 1, mem, output)
-
-  # go back in memory
-  defp run("<" <> rest, address, mem, output) when address == 0 do
-    # add a cell before the start
-    run(rest, 0, [0] ++ mem, output)
-  end
-  defp run("<" <> rest, address, mem, output), do: run(rest, address - 1, mem, output)
-
-  # increase value at current address
-  defp run("+" <> rest, address, mem, output), do: run(rest, address, mem |> increase_at(address), output)
-
-  # decrease value at current address
-  defp run("-" <> rest, address, mem, output), do: run(rest, address, mem |> decrease_at(address), output)
-
-  # output value at current address
-  defp run("." <> rest, address, mem, output), do: run(rest, address, mem, output <> (mem |> char_at(address)))
+  defp run("", addr, mem, output), do: {addr, mem, output}
+  defp run(">" <> rest, addr, mem, output) when length(mem) == addr + 1, do: run(rest, addr + 1, mem ++ [0], output)
+  defp run(">" <> rest, addr, mem, output), do: run(rest, addr + 1, mem, output)
+  defp run("<" <> rest, addr, mem, output) when addr == 0, do: run(rest, 0, [0] ++ mem, output)
+  defp run("<" <> rest, addr, mem, output), do: run(rest, addr - 1, mem, output)
+  defp run("+" <> rest, addr, mem, output), do: run(rest, addr, mem |> increase_at(addr), output)
+  defp run("-" <> rest, addr, mem, output), do: run(rest, addr, mem |> decrease_at(addr), output)
+  defp run("." <> rest, addr, mem, output), do: run(rest, addr, mem, output <> (mem |> char_at(addr)))
 
   # start loop
-  defp run("[" <> rest, address, mem, output) do
-    case mem |> byte_at(address) do
-      0 -> run(rest |> jump_to_end, address, mem, output)
+  defp run("[" <> rest, addr, mem, output) do
+    case mem |> byte_at(addr) do
+      0 -> run(rest |> jump_to_end, addr, mem, output)
       _ ->
-        {a,m,o} = run(rest |> loop_body, address, mem, output)
+        {a,m,o} = run(rest |> loop_body, addr, mem, output)
         # prepend [ to the input, to make sure we call this function again
         run("[" <> rest, a, m, o)
     end
   end
 
   # ignore non-Brainfuck chars
-  defp run(<<_>> <> rest, address, mem, output), do: run(rest, address, mem, output)
+  defp run(<<_>> <> rest, addr, mem, output), do: run(rest, addr, mem, output)
 
-  defp increase_at(list, address), do: List.update_at(list, address, &(&1 + 1 |> mod(255)))
-  defp decrease_at(list, address), do: List.update_at(list, address, &(&1 - 1 |> mod(255)))
-  defp byte_at(list, address), do: list |> Enum.at(address)
-  defp char_at(list, address), do: [list |> byte_at(address)] |> to_string
+  defp increase_at(list, addr), do: List.update_at(list, addr, &(&1 + 1 |> mod(255)))
+  defp decrease_at(list, addr), do: List.update_at(list, addr, &(&1 - 1 |> mod(255)))
+  defp byte_at(list, addr), do: list |> Enum.at(addr)
+  defp char_at(list, addr), do: [list |> byte_at(addr)] |> to_string
 
   # start the matching loop
   defp match_lend(source), do: match_lend(source, 1, 0)
