@@ -1,6 +1,6 @@
 defmodule BrainfuckTest do
   use ExUnit.Case
-  # doctest Brainfuck # <-- skipped for now
+  doctest Brainfuck # <-- skipped for now
 
   test "returns nothing for an empty program" do
     assert Brainfuck.run("") == {0, [0], ""}
@@ -14,8 +14,19 @@ defmodule BrainfuckTest do
     assert Brainfuck.run("+++") == {0, [3], ""}
   end
 
+
   test "- decrements the value at the data pointer location" do
-    assert Brainfuck.run("---") == {0, [-3], ""} # TODO should be 253 instead!
+    precondition = "++++++++++++++++++++++++++++++++++++++++++"
+    assert Brainfuck.run(precondition <> "---") == {0, [39], ""}
+  end
+
+  test "values clamp between 0 and 255" do
+    assert Brainfuck.run(
+    "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+    <> "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+    <> "+++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+    ) == {0, [0], ""}
+    assert Brainfuck.run("-") == {0, [255], ""}
   end
 
   test "> increments the data pointer" do
@@ -27,7 +38,7 @@ defmodule BrainfuckTest do
   end
 
   test ". output the value at the data pointer as byte" do
-    precondition = "++++++++++++++++++++++++++++++++++++++++++" # == 42
+    precondition = "++++++++++++++++++++++++++++++++++++++++++"
     assert Brainfuck.run(precondition <> ".") == {0, [42], "*"}
   end
 
@@ -35,11 +46,19 @@ defmodule BrainfuckTest do
   test ", read a byte into the cell at pointer location" do
   end
 
-  @tag :skip
   test "[ if the current cell value is zero, jump to the next matching ]" do
+    assert Brainfuck.run("[+++]+") == {0, [1], ""}
   end
 
-  @tag :skip
-  test "] if the current cell value is non-zero jump back to the matching [" do
+  test "[ if the current cell value is not zero, execute loop body" do
+    assert Brainfuck.run("+++++[-]+") == {0, [1], ""}
+  end
+
+  test "unbalanced loop borders" do
+    assert_raise RuntimeError, "unbalanced loop", fn -> Brainfuck.run("[") end
+    # assert_raise RuntimeError, "unbalanced loop", fn -> Brainfuck.run("]") end # TODO check if this is really ok!
+    assert_raise RuntimeError, "unbalanced loop", fn -> Brainfuck.run("[[[][]]") end
+    assert_raise RuntimeError, "unbalanced loop", fn -> Brainfuck.run("[[][[]]") end
+    # assert_raise RuntimeError, "unbalanced loop", fn -> Brainfuck.run("[[][]]]") end # TODO check if this is really ok!
   end
 end
