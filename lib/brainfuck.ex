@@ -14,7 +14,7 @@ defmodule Brainfuck do
   defp run("", addr, mem, output), do: {addr, mem, output}
   defp run(">" <> rest, addr, mem, output) when length(mem) == addr + 1, do: run(rest, addr + 1, mem ++ [0], output)
   defp run(">" <> rest, addr, mem, output), do: run(rest, addr + 1, mem, output)
-  defp run("<" <> rest, addr, mem, output) when addr == 0, do: run(rest, 0, [0] ++ mem, output)
+  defp run("<" <> rest, addr, mem, output) when addr == 0, do: run(rest, 0, [0 | mem], output)
   defp run("<" <> rest, addr, mem, output), do: run(rest, addr - 1, mem, output)
   defp run("+" <> rest, addr, mem, output), do: run(rest, addr, mem |> increase_at(addr), output)
   defp run("-" <> rest, addr, mem, output), do: run(rest, addr, mem |> decrease_at(addr), output)
@@ -25,7 +25,7 @@ defmodule Brainfuck do
     case mem |> byte_at(addr) do
       0 -> run(rest |> jump_to_end, addr, mem, output)
       _ ->
-        {a,m,o} = run(rest |> loop_body, addr, mem, output)
+        {a, m, o} = run(rest |> loop_body, addr, mem, output)
         # prepend [ to the input, to make sure we call this function again
         run("[" <> rest, a, m, o)
     end
